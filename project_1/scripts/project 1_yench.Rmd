@@ -1,0 +1,295 @@
+---
+title: "BIOS611 Project 1"
+author: "Yen Chang"
+date: "September 21, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Background
+Urban Ministries of Durham (UMD) is a non-profit organization providing shelter, food, clothing, hygiene kits, and other services to people who are homeless or in emergent needs in Durham. This project aims to look at services provided by UMD, produce summary statistics and plots useful for PR and storytelling, as well as discover trends that might help UMD respond better to changing needs in the future.    
+
+# Data source
+UMD provided two datasets used in this analysis:
+
+1. [UMD_Services_Provided_20190719.tsv](https://raw.githubusercontent.com/biodatascience/datasci611/gh-pages/data/project1_2019/UMD_Services_Provided_20190719.tsv)
+  This dataset contains the services provided by UMD from late 1990s to July, 2019. Each observation recorded the services provided to one household during one of their visits to UMD. 
+
+1. [UMD_Services_Provided_metadata_20190719.tsv](https://raw.githubusercontent.com/biodatascience/datasci611/gh-pages/data/project1_2019/UMD_Services_Provided_metadata_20190719.tsv)
+  This dataset explains the columns in the first dataset.
+
+1. [Local Area Umemployment Statistics](https://data.bls.gov/timeseries/LAUMT372050000000004?amp%253bdata_tool=XGtable&output_view=data&include_graphs=true)
+   This dataset contains monthly and annual unemployment rates in the Durham-Chapel Hill, NC area. This was downloaded from the website of Bureau of Labor Statistics with Series Id LAUMT372050000000004.
+
+
+# Preparation
+Loading `tidyverse`. Reading in data, renaming variables, and transforming dates from character format to numbers. Data will be furthered cleaned as needed as we go through each question. 
+
+```{r prep, message=FALSE, warning=FALSE}
+library(tidyverse)
+
+# Read in dataset 1, the UMD data.Rename variables, and transform dates
+raw = read_tsv("C:/Users/Yen/Documents/GitHub/bios611-projects-fall-2019-yench/project_1/data/UMD_Services_Provided_20190719.tsv.txt")
+
+umd = raw %>%
+  select(-'Client File Merge',-(Field1:Field3)) %>%
+  rename('id'='Client File Number',
+         'bus'='Bus Tickets (Number of)',
+         'note'='Notes of Service',
+         'food.n'='Food Provided for',
+         'food.p'='Food Pounds',
+         'clothes'='Clothing Items',
+         'school'='School Kits',
+         'hygiene'='Hygiene Kits') %>%
+  mutate(date=as.Date(Date,"%m/%d/%Y"),
+         year=as.numeric(format(date,'%Y')),
+         month=as.numeric(format(date,"%m")))
+
+# Read in and clean the dataset 3, the unemployment dataset.
+unemp = read_csv("C:/Users/Yen/Documents/GitHub/bios611-projects-fall-2019-yench/project_1/data/1999-2019 Monthly Durham Chapel Hill Unemployment Statistics.txt")
+
+unemp = unemp %>%
+  filter(!(Year==2019 & Period=="Jul")) %>% # The statistics for Jul, 2019 are preliminary
+  select(year=Year,period=Period,unemp.rate.c='unemployment rate') %>%
+  mutate(unemp.rate.n=as.numeric(unemp.rate.c))
+```  
+
+ 
+#Part A. Summary statistics and plots for PR and storytelling 
+## 1. How many counts of services did UMD provide for the duration of this dataset, total and by year?
+  By looking at the number of rows in the dataset, it's easy to tell that the total count of services provided during the duration of this dataset is `r nrow(umd)`. The count of services each year is trickier because some of the dates in the dataset are clearly not valid, such as dates after 2020 or prior to 1983, when UMD was established. Services provided between 1983 and 1998 also look spurious for their counts are pretty small and could possibly come from key-in errors. Thus, only observations with dates between 1999 and 2019 are included for the following analysis.
+  
+```{r A1a}
+# Count how many services were provided each year
+count_by_year = count(umd,year,name='count')
+
+# Reshape and print the table of yearly counts 
+cbind(count_by_year[1:12,],count_by_year[13:24,],rbind(count_by_year[25:35,],c(NA,NA)))
+  
+```
+  Between 2009 and 2019, UMD provided a total of `r sum(count_by_year[13:33,2])` services. The count of services increased gradually, from less than 500 per year, to around 5000 to 6000 per year over the past 21 years.
+```{r A1b}
+# Create a subset of data with observations dated between 1999 and 2019
+umd_9919 = umd %>%
+  filter(between(year,1999,2019))
+
+# Create a plot of counts of services by year
+ggplot(data=umd_9919)+
+  labs(title='Counts of services provided by UMD yearly increased more than 10 fold',
+       subtitle='(1999-2019)',x='Year',
+       y='Count of services')+ 
+  geom_bar(aes(year))+
+  scale_y_continuous(breaks=1:6*1000)
+```
+
+##2. How many unique households were served by UMD between 2009 and 2019?
+  UMD identifies their clients by household. Each household can be a family or an individual, and is given a unique ID. By counting the number of unique IDs and assuming no overlapping members between households, UMD served a total of `r length(unique(umd$id))` unique households between 2009 and 2019. 
+  
+##3. How many new households joined UMD services yearly between 2009 and 2019?
+  Unlike the count of services, the number of new households joining UMD services each year did not increase as steadily, but fluctuated around 700 to 1000, and seemed to be related to the annual local unemployment rate (red line), especially before 2015. 
+```{r A3}
+# Obtain the date of first visit for each household
+first = umd_9919 %>%
+  select(id,date,year,month) %>%
+  arrange(id,date) %>%
+  group_by(id) %>%
+  filter(row_number(date)==1) %>%
+  ungroup()
+
+# Count the number of new households each year
+first_by_year = first %>%  count(year)
+
+# Reshape the table for presentation
+cbind(first_by_year[1:11,],rbind(count_by_year[12:21,],c(NA,NA)))
+
+# Obtain annual unemployment rates
+unemp.ann = filter(unemp,period=='Annual')
+
+# Plot the number of new households agains year, and superimpose local umemployment rate
+ggplot(data=first_by_year,aes(x=year,y=n))+ 
+  labs(title='Numbers of new households and local unemployment rate',x='Year',y='Number of new households joining UMD services')+
+  geom_col()+
+  geom_line(data=unemp.ann,aes(x=year,y=unemp.rate.n*150),color='red')+
+  geom_point(data=unemp.ann,aes(x=year,y=unemp.rate.n*150),color='red')+
+  scale_y_continuous(breaks=1:10*100,limits=c(0,1300),
+                     sec.axis=sec_axis(~ ./150,breaks=0:10,name='Local unemployment rate (%)'))
+```
+
+##4. How many UMD services did households typically use?
+
+  Among `r sum(first_by_year[,2])` unique households that used UMD services between 2009 and 2019, 6779 households used UMD services only once, which is about `r round(6779*100/sum(first_by_year[,2]))`% of the households. On the other hand, more than 75% of households used UMD services no more than 5 times. The actual percentages would be lower because some households that joined later might not have their second (and above) visits to UMD yet.  
+
+```{r A4, fig.width=12,fig.height=6,message=FALSE}
+# Compute length of intervals (days) between visits for each household
+interval = umd_9919 %>%
+  select(id,date) %>%
+  arrange(id,date) %>%
+  group_by(id) %>%
+  mutate(interval=ifelse(row_number(date)!=1,date-lag(date),NA))
+
+# Count how many times did each household use UMD services
+times = interval %>%
+  summarize(n.services=n()) %>%
+  ungroup()
+
+# Create labels for the following histogram
+times_label = times %>%
+  count(n.services) %>%
+  filter(n.services<=5)
+
+# Plot the distribution of times household used UMD services. Log transform the x axis otherwise the right tail is too long.
+times %>%
+  ggplot(aes(x=n.services))+ 
+  geom_histogram()+
+  scale_x_continuous(trans="log",breaks=c(1:10,20,30,50,100,150))+
+  ylim(0,7000)+
+  geom_text(data=times_label,
+            mapping=aes(label=n,x=c(1,2.12,3.10,3.75,4.55),y=n),vjust=-1.8,size=3)+
+  labs(title='Roughly 40% of households used UMD services once',
+       subtitle='More than 75% of households used UMD services 1 to 5 times',
+       x='Count of services',
+       y='Number of households')
+```  
+
+##5. For households that used more than one UMD service, how long were the intervals between two services?  
+  Among the `r sum(first_by_year[,2],-6779)` households that used UMD services more than once, the intervals between two survices ranged from 1 day to about 17.5 years, with the median being 42 days. From the histogram below, it's clear that the majority of intervals between two visits fell within 12 months (or one year).  
+```{r A5, fig.width=12,fig.height=6}
+# Summary statistics of intervals between two services (day)
+summary(interval$interval[-which(is.na(interval$interval))])
+
+# Obtain median of intervals in months
+median_interval = median(interval$interval,na.rm=TRUE)/(365.25/12)
+
+# Plot the distribution of intervals 
+interval %>%
+  filter(!is.na(interval)) %>%
+  mutate(interval.month = interval/(365.25/12)) %>%
+  ggplot(aes(x=interval.month))+
+    geom_histogram(binwidth=0.5)+
+    scale_x_continuous(trans='log10',breaks=c(0,0.5,1,2,3,6,12,24,48,60))+
+    geom_vline(xintercept=median_interval,color='white')+
+    labs(title='Most intervals between visits are less than 12 months',
+         x='Interval between two services (month)', 
+         y='Number of households',
+         caption='The vertical white line is the median of interval between two services (month)')
+
+```
+
+##6. Among households receiving more than one service, how long did it take them to stand on their own feet, moved out of the community (including death), or in general, stopped using UMD services? 
+This question is harder to answer than it appears. First, we only know why households visited, not why they stopped comming, so we have no information to tackle the first two sub-questions.  Second, the status of being independent is dynamic. To simplify the question, I only look at a subset of households satisfying the following criteria: i) received more than one service between 2009 and 2019, ii) had their first visits before 2017, and iii) had not visited after July, 2017, so they hadn't visited UMD for the past two years. Then, the duration between their first and last visits are calculated.
+
+```{r A6a}
+# Ontain the date of last visit for each household 
+last = umd_9919 %>%
+  select(id,date,year,month) %>%
+  arrange(id,desc(date)) %>%
+  group_by(id) %>%
+  filter(row_number(desc(date))==1) %>%
+  ungroup()
+
+# Calculate the duration between the first and the last visit for each household, in days and in months, and subset the data
+first_last = first %>%
+  left_join(last,by="id") %>%
+  mutate(duration=as.numeric(date.y-date.x)) %>%
+  filter(duration>0 & date.x<as.Date('2017-01-01') & date.y<as.Date('2017-07-19')) %>%
+  mutate(duration.month=duration/(365.25/12))
+
+# Summary statistics for the duration in days
+summary.q6=summary(first_last$duration)
+print(summary.q6)
+```
+
+  The median duration of receiving UMD services is `r summary.q6[3]` days, or about one year. The 75% percentile of the duration receiving UMD services is `r summary.q6[5]` days, or about 3 years, which means that about 75% of households stopped using UMD services in about three years.
+
+```{r A6b, fig.width=12,fig.height=5}
+# Plot the distribution of duration receiving UMD services
+ggplot(data=first_last,aes(x=duration.month))+
+  geom_histogram(binwidth=3)+
+  scale_x_continuous(breaks=c(3,6,12*1:20))+
+  geom_vline(xintercept=summary.q6[3]/(365.25/12),color='white')+
+  geom_vline(xintercept=summary.q6[5]/(365.25/12),color='white')+
+  labs(title='',x='Duration receiving UMD services (month)',
+       y='Number of households',
+       caption='The two vertical lines are the median and 75th percentile of duration receiving UMD services (month), respectively.')
+```
+
+
+#Part B.Trends
+##1. Is there any particular season or month where UMD saw more households coming?
+  When the counts of visits each month are summed across years 2009 to 2018, there doesn't seem to be a particular month or season with much higher or lower counts of services. 
+
+```{r B1a}
+# Count the number of services provided in 12 months across 2009 to 2018. 2019 data is excluded because we don't have a full year of data for 2019.
+umd_9919 %>%
+  filter(year<2019) %>%     
+  ggplot(aes(x=factor(month)))+
+  geom_bar()+
+  scale_x_discrete(breaks=1:12,               labels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))+
+  labs(title='No clear pattern between months and counts of services UMD provided',
+       subtitle='Counts are summed across years between 2009 and 2018',
+       x='Month',y='Count of services')+ 
+  scale_y_continuous(breaks=1:7*1000)
+
+```
+  
+  When counts of services are examined for each month from 1999 to 2019, still there is no clear pattern between month and the the count of services. There might be a pattern between month and the counts of certain types of services (eg. clothing or food), but it will not be explored in this analysis. 
+```{r B1b, fig.width=10,fig.height=6}
+# Create labels for the facet below
+row_labels = c(row0="1999-2005",row1="2006-2012",row2="2013-2019")
+
+# Plot the monthly count of services from 1999 to 2019
+umd_9919 %>%
+  mutate(row=paste('row',(year-1999)%/%7,sep=''),col=(year-1999)%%7) %>%               #create two variables to help faceting
+  ggplot(aes(x=factor(month)))+
+  geom_bar()+
+  facet_grid(row~col,labeller=labeller(row=row_labels))+
+  theme(strip.text.x = element_blank())+
+  scale_x_discrete(breaks=3*1:4)+
+  labs(title='No clear pattern between months and count of services UMD provided',
+       subtitle= '(1999-2019)',
+       x='Month',y='Count of services')
+```
+
+
+## 2. Is there any particular season or month where UMD saw more new households coming?
+ Similarly, there doesn't seem to be a clear pattern here. 
+```{r B2a,fig.width=10}
+# Plot the distribution of the monthly number of new households joining UMD services in 1999-2019 
+first %>%
+  mutate(row=paste('row',(year-1999)%/%7,sep=''),col=(year-1999)%%7) %>%               #create two variables to help faceting
+  ggplot(aes(x=factor(month)))+
+  geom_bar()+
+  facet_grid(row~col,labeller=labeller(row=row_labels))+
+  theme(strip.text.x = element_blank())+
+  scale_x_discrete(breaks=3*1:4)+
+  labs(title='No clear pattern between month/season and the number of new households joining UMD services',
+       subtitle= '(1999-2019)',
+       x='Month',y='Number of new households joining UMD services')
+  
+```
+
+As a continuation of Part A question 3, the monthly unemployment rates from 1999 to 2019 are also plotted. Just by comparing the two plots, it's debatable whether there is a relationship between unemployment rate and the number of new households using UMD services. More rigorous statistical tests are needed to support or disprove the claim. 
+
+```{r B2b, message=FALSE}
+# The months in the unemployment data set are saved as characters (eg. Jan) rather than numbers. Create a dataset that link character months to numeric months, which could be merged with the enemployment dataset. This helps with graphing the monthly unemployment rate and comparing to the plot above.
+month.c_to_n = tibble(month.n=1:12,month.c=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
+
+# Plot monthly local unemployment rate from 1999 to 2019
+unemp %>%
+  filter(period!='Annual') %>%
+  left_join(month.c_to_n,by=c("period"="month.c")) %>%
+  mutate(row=paste('row',(year-1999)%/%7,sep=''),col=(year-1999)%%7) %>%               #create two variables to help faceting
+  ggplot(aes(x=month.n,y=unemp.rate.n))+
+  geom_point()+
+  facet_grid(row~col,labeller=labeller(row=row_labels))+
+  theme(strip.text.x = element_blank())+
+  scale_x_continuous(breaks=3*1:4)+
+  scale_y_continuous(breaks=c(2,4,6,8))+
+   labs(title='Local monthly unemployment rate (1999-2019)',
+       x='Month',y='Monthly unemployment rate (%)')
+```
+
+# Conclusion
+ During the past 21 years, UMD served a large and increasing community of people in need, and 3 quarters of which were able to stop using UMD services in about three years. Month and season did not seem to affect the (total) count of services they provided or the number of new clients, although the result presented here does not rule out the possibility that the counts of specific types of services might differ from month to month or season to season. This is a more visual and less statistically rigorous exploratory analysis, but it might be interesting to include local unemployment rate as an explanatory variable for the number of new households joining UMD services in the future.
