@@ -315,7 +315,7 @@ first %>%
     
 As a continuation of Part A question 3, the monthly unemployment rates from 1999 to 2019 are also plotted. Just by comparing the two plots, it's debatable whether there is a relationship between unemployment rate and the number of new households using UMD services. 
 
-```{r B2b, message=FALSE}
+```{r B2b, message=FALSE, fig.width=10}
 # The months in the unemployment data set are saved as characters (eg. Jan) rather than numbers. Create a dataset that link character months to numeric months, which could be merged with the enemployment dataset. This helps with graphing the monthly unemployment rate and comparing to the plot above.
 month.c_to_n = tibble(month.n=1:12,month.c=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
 
