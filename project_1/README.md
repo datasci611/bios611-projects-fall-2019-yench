@@ -4,8 +4,8 @@ Urban Ministries of Durham (UMD) is a non-profit organization providing shelter,
 # Questions to be addressed
 ##Part A. Summary statistics and plots for PR and storytelling 
 1. How many counts of services did UMD provide for the duration of this dataset, total and by year?
-2. How many unique households were served by UMD between 2009 and 2019?
-3. How many new households joined UMD services yearly between 2009 and 2019?
+2. How many unique households were served by UMD between 1999 and 2019?
+3. How many new households joined UMD services yearly between 1999 and 2019?
 4. How many UMD services did households typically use?
 5. For households that used more than one UMD service, how long were the intervals between two services?
 6. Among households receiving more than one service, how long did it take them to stand on their own feet, moved out of the community (including death), or in general, stopped using UMD services? 
