@@ -1,6 +1,6 @@
 # BIOS611 Project 2 
 
-[Project URL]: (https://yench.shinyapps.io/project_2/)
+Project URL: [https://yench.shinyapps.io/project_2](https://yench.shinyapps.io/project_2)
 
 ## Background
 Urban Ministries of Durham (UMD) is a non-profit organization providing shelter, food, clothing, hygiene kits, and other services to people who are homeless or in emergent needs in Durham. This project intends to create a shiny dashboard which alllows stakeholders of UMD to visualize the different services provided by UMD.   
