@@ -7,7 +7,7 @@ Urban Ministries of Durham (UMD) is a non-profit organization providing shelter,
 
 ## Plots to be included
 **Plot A1.** A histogram of counts of services UMD provided, by type of services.  
-**Plot A2.** A pie chart showing the percentage of visits seeking the selected service among all visits. 
+**Plot A2.** A pie chart showing the percentage of visits seeking the selected service among all visits.  
 A user can choose the years and the type of service they want to look at.
 
 **Plot B.** Family size and services
