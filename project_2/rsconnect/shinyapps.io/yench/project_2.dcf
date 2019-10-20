@@ -1,0 +1,13 @@
+name: project_2
+title: project_2
+username:
+account: yench
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1354333
+bundleId: 2517943
+url: https://yench.shinyapps.io/project_2/
+when: 1571602893.83431
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: README.MD
