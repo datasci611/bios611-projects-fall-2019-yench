@@ -171,7 +171,8 @@ B_plot_helper = function(data, y_axis, service){
     
     labs(title = paste('B. Joint Distribution of Family Size and', service),
          x = 'Household size',
-         y = sub('the selected service', service, y_axis),
+         y = paste(sub('the selected service','', y_axis),"\n ",service),
+         #y = sub('the selected service', service, y_axis),
          caption = '1. Household size estimated by the maximum value of Food Provided for for that household. 
          \n2. Color and size of dots correspond to frequency of a value. 
          \n3. Food Provided for and Food in Pounds have the same count and proportion because both were for food.')+
@@ -179,5 +180,7 @@ B_plot_helper = function(data, y_axis, service){
     theme(plot.title = element_text(size = 22),
           plot.caption = element_text(size = 12, hjust = 0))+
     
-    guides(color = 'legend')
+    guides(color = 'legend')+
+    
+    scale_color_gradient(low="blue", high="red")
 }

@@ -12,23 +12,35 @@ data_b = B_data_helper(data)
 # Construct the ui
 ui = fluidPage(
   
-  titlePanel('BIOS611 Project 2   Fall, 19   Yen Chang'),
+  titlePanel('BIOS611 Project 2        Yen Chang'),
   
   # Define the sidebar panel 
   sidebarLayout(
     
     sidebarPanel(
       
+      
+      helpText('Urban Ministries of Durham (UMD) is a non-profit organization providing
+              shelter, food, clothing, hygiene kits, and other services to people in needs
+              in Durham. This shiny dashboard aims to provide stakeholders of UMD
+              with tools to visualize the different services provided between 1999 and 2019.
+              The data set used in this dashboard is supplied by UMD.'),
+      
+      br(),  
+      
       # Plot A1: a histogram of counts of a selected service in a selected period.
       # Plot A2: a pie chart showing the percentage of visits seeking the selected service in the selected period.
       h4(helpText('A. Counts of a particular service')),
       helpText('This widget creates a histogram and a pie chart of counts of a particular type of service in a selected period. Please select the type of service and the time period of interest.'),
       
+      br(),
       
       # Input A_service: types of service to select from
       radioButtons(inputId = 'A_service',
                      label = 'Type of services',
                    choices = c('Food', 'Clothing', 'Diapers', 'School Kits', 'Hygiene Kits', 'Bus Tickets')),
+      
+      br(), 
       
       # Input A_year: years to display
       sliderInput(inputId = 'A_year',
@@ -38,7 +50,11 @@ ui = fluidPage(
                   value = c(1999,2019),
                   sep = ''),
       
-      br(),
+      helpText('Visits prior to 1999 and after 2019 likely came from key-in errors, 
+               therefore only visits betwen 1999 and 2019 are included here.'), 
+      
+      br(), br(), br(), br(), br(), br(), br(), br(), br(),
+      
       
       # Plot B: Relationship between family size and use of services
       h4(helpText('B. Family size and services')),
@@ -68,7 +84,7 @@ ui = fluidPage(
       
       textOutput(outputId = 'Acount'),
       
-      br(),
+      br(), br(), 
       
       plotOutput(outputId = 'A2plot'),
 
