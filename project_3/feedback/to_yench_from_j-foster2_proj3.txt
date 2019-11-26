@@ -1,0 +1,10 @@
+Your python was easy to read and well commented. Make sure to add your Docker image file to the repo for reference. While you haven’t gotten around to adding your R scripts the modularity of your project is good in your first draft.
+Your README does a great job outlining the specific questions you are investigating, as well as provides a nice explanation of how plan to answer those questions. Nice incorporation of external data.
+
+README does a great job of stating the focus and purpose of the analysis.
+
+The questions being investigated are likely pertinent to UMD. It may be helpful to expound on why it is important for UMD to understand who they serve and specifically why you focused on specific demographic data. 
+
+Great job breaking down the origin of the data.
+
+Once your final figures are created it will be helpful to have a couple of sentences that interpret the data. A simple summary will provide a nice foundation to any UMD employee who is looking at your analysis. 

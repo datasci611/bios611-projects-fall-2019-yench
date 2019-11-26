@@ -1,0 +1,86 @@
+To Yench:
+
+The following feecback is for the Project 3 draft. I will respond to the repo
+after commit 7e7eea3.
+
+Provide feedback about the following topics:
+
+1. Is the project organized modularly, with Make as the workflow manager?
+
+The project has four subdirectories (data, feedback, results, scripts).
+The Make file exists and is found under the scripts directory. This file has
+two targets including the generation of a client csv file and a report document.
+It appears that the project is organized modularly and that Make is the proper
+workflow manager. Good job! It may be easier if the Makefile is in the root
+directory. If you rather keep it in the scripts directory (a reasonable choice),
+you may want to add a description on your README so that people know where to
+find it.
+
+2. Does the project use both Python (Pandas specifically) and R (Tidyverse specifically) scripts?
+
+This project does include scripts for both Pandas data wrangling, but it does
+not include a R script (yet). The README indicates that a R Markdown file will
+be used as the final deliverable. The Make file indicates that there should be
+a Rmd file called report under results. The make file looks like it should work,
+so once the Rmd file is added then you should be set.
+
+3. Is Docker used to define execution environments appropriately?
+
+It looks like two docker environments are specified - one for python and one
+for R/Tidyverse. It may be reasonable to use a single docker environment that
+that can handle both processes, but it would not be strictly necessary. Plus,
+this is extra practice for docker.
+
+4. Are the plots appropriate for the data types, the hypotheses being tested, and the points being communicated?
+
+There are currently no results available, but it looks like they should be
+generated from the Rmd file after pandas manipulation. The hypotheses being
+tested (as noted by the questions on the README) are interesting and should
+be testable using the data.
+
+5. How can the project be organized or documented more clearly?
+
+I would consider moving the Makefile to the root so that it is clear that it
+exists (to a user who might not expect it). I would also mention something about
+"how to run this analysis" to your README. It would help someone handle the
+various programs (Make, Docker, Pandas, R).
+
+6. Is the purpose of the project communicated clearly?
+
+The primary purpose of the project is communicated clearly on the README. You
+also mention that you'll be using American Community Survey data in your
+analysis, but it is not clear how. I look forward to seeing how you end up
+using the data!
+
+7. Does the purpose of the project make sense from the client’s point of view? How could the project better serve the client?
+
+I think question 3 is of great importance to the client. Questions 1 and 2 may
+already be possible, but it would still help UMD to have these statistics
+available for their shelter.
+
+8. Is the source of the data made clear? (Remember that this project can be part of your public portfolios, so people not familiar with UMD may see it).
+
+Yes, it is clear the data is from UMD. It might be worth adding some more
+details about the specific datasets - perhaps in a README under the data
+subdirectory.
+
+9. Is the interpretation of figures clearly explained?
+
+Since the figures are not yet available, I was not able to comment on this point.
+
+10. Is the purpose and interpretation of analysis steps clearly communicated?
+
+You do a good job of commenting throughout your python file. Consider using
+a Juypter notebook to help your reader follow along. It would also be helpful
+to see some "looks at the data" along the way in your analysis.
+
+11. Are overall take-home messages clearly communicated?
+
+This is a good step towards achieving the Project 3 objectives. You highlight
+three questions that are relevant to the client. You have gather the appropriate
+data, including an outside source, and explain how you'll utilize both Pandas
+and the Tidyverse to achieve your final product (while employing Docker and
+Make). The report should focus on your three questions and present a figure to
+address each question. The second part of question 3 is of particular interest
+to UMD, but it may be difficult to explain with a graphic alone. Consider using
+some illustrative examples. 
