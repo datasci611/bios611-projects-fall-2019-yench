@@ -37,6 +37,6 @@ Python: for preparing analysis datasets to be analyzed with R
 
 R: The analyses of three questions will come with summary statistics and plots, and for question 1 and 3 there will be statistical tests. Output will be an html report.  
 
-Makefile: for downloading data and running a python script and R markdown, and production of dependency plot.
+Makefile: for running the python script and R markdown, and production of dependency plot.
 
 Docker: for creating an environment in which this project is run.

@@ -1,9 +1,9 @@
-## This python script import raw datasets, wrangle, and write analysis datasets for further analysis in R.
+## This python script imports raw datasets, wrangles, and writes analysis datasets for further analysis in R.
 
-## Input: CLIENT_191102.tsv.txt
-##		  ACSDP5Y2017.DP05_data_with_overlays_2019-11-17T201128.csv
+## Input: ACSDP5Y2017.DP05_data_with_overlays_2019-11-17T201128.csv
 ##		  ACSDP5Y2017.DP02_data_with_overlays_2019-11-18T123256.csv
-		  
+##        CLIENT_191102.tsv.txt
+##        DISABILITY_ENTRY_191102.tsv.txt  
 
 ## Output: durham_sex.csv
 ##		   durham_age.csv
@@ -11,6 +11,9 @@
 ##		   durham_ethnicity.csv
 ##		   durham_veteran.csv
 ##		   durham_disability.csv
+##         client.csv
+##         disability_entry_subject.csv
+##         disability_entry_summary.csv
 
 
 import pandas as pd
@@ -59,7 +62,7 @@ durham_merge = durham_level.merge(durham_est, on = 'index', how = 'left')
 durham_merge.columns = ['lev1','lev2','lev3','lev4','lev5',durham_merge.columns[5],durham_merge.columns[6],'Percent Estimate']
 
 
-## Process and output sex and data 
+## Process and output sex and age data 
 durham_sex_age_ = durham_merge[durham_merge['lev1'] == 'SEX AND AGE']
 
 durham_age = durham_sex_age_.iloc[4:18,[2,5,6,7]]
@@ -112,9 +115,9 @@ durham_veteran.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project
 
  
 ## Process and output disability data
-durham_disability_ = durham_merge[durham_merge['lev1'].str.contains('DISABILITY')]
-durham_disability_
-durham_disability.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/durham_disability.csv',index=False)
+# durham_disability_ = durham_merge[durham_merge['lev1'].str.contains('DISABILITY')]
+# durham_disability_
+# durham_disability.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/durham_disability.csv',index=False)
  
 
  
@@ -123,17 +126,10 @@ durham_disability.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/proj
 client_raw = pd.read_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/raw/CLIENT_191102.tsv.txt', sep='\t')
 
 ## Select only variables that will be used in the analysis
-client = client_raw.iloc[:,3:10]
+client = client_raw.iloc[:,2:10]
 
 ## Remove the string '(HUD)' from variables
-for i in [4,5,6]:
-    client.iloc[:,i] = client.iloc[:,i].str.rstrip('(HUD)')
-
-## select only variables that will be used in the analysis
-client = client_raw.iloc[:,3:10]
-
-## remove the string '(HUD)' from variables
-for i in [4,5,6]:
+for i in [5,6,7]:
     client.iloc[:,i] = client.iloc[:,i].str.rstrip('(HUD)')
 
 ## Categorize age according to the cutoffs of local demographic data
@@ -169,16 +165,41 @@ client['ethnicity_cat'] = client['Client Ethnicity'].str.strip()
 
 client['ethnicity_cat'].replace(ethnicity_dic, inplace = True)
 
-client.groupby("ethnicity_cat").size()
+## Categorize veteran status according to the levels of of local demographic data 
+## (only look at subjects 18 years old and over at entry)
 
+veteran_dic = {'Yes': 'Civilian veteran', 'No': 'Non veteran'}
 
-## Categorize veteran status according to the levels of of local demographic data
+for i, row in client.iterrows():
+    if client['Client Age at Entry'].iloc[i] >= 18:
+        client['veteran_cat'] = client['Client Veteran Status'].str.strip()
+        client['veteran_cat'].replace(veteran_dic, inplace = True)
 
-## Categorize disability according to the levels of of local demographic data
-
+## Output the client dataset
 client.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/client.csv',index=False)
 
-	
+# 3. Disability data
+## Read in raw disability at entry dataset
+disability_entry_raw = pd.read_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/raw/DISABILITY_ENTRY_191102.tsv.txt', sep='\t')
 
+## Keep only variables relevant to analysis
+disability_entry = disability_entry_raw.iloc[:,2:8]
 
+## Remove the string '(HUD)' from variables
+for i in [2,3]:
+    disability_entry.iloc[:,i] = disability_entry.iloc[:,i].str.rstrip(' (HUD)')
+    
+## Output subject-level disability entry dataset
+disability_entry.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/disability_entry_subject.csv',index=False)
 
+## Create an indicator for disability        
+for i in range(0, len(disability_entry)):
+    disability_entry['disability_ind'] = (disability_entry['Disability Determination (Entry)'] == 'Yes')
+    
+## For each subject, obtain their disability status ('With a disability' if at least one record of disability during the duration of the dataset)
+disability_ind2 = disability_entry.groupby(['Client Unique ID']).agg('sum') 
+disability_ind2['disability_total'] = pd.cut(disability_ind2.iloc[:,1], [-1,0,150], labels = ['Without a disability','With a disability'])
+
+### If intersted in the first or last entry rather than all, the following code yields the disability status at each date of entry
+### disability_entry['entry_date'] = pd.to_datetime(disability_entry['Disability Start Date (Entry)'])
+### disability_entry.groupby(['Client Unique ID','entry_date']).agg('sum')
