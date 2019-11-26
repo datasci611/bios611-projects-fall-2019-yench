@@ -1,0 +1,42 @@
+Good job on the project draft, it looks promising. Some feedback is listed below. Good luck on the report and final presentation!
+
+
+======================== Non-Template Feecback ========================
+1. README file is well-organized and detailed. I might add hyperlink to the folder links and datsets, but that's extra and the README is good enough as is.
+2. Maybe only include the datasets that are actually (CLIENT, EE_UDES, ENTRY_EXIT) used in the analysis in the data folder?
+3. The 'Q2_Relationship between the average time of stay at UMD and client gender.png' figure's title is truncated.
+
+
+========================= Template Feedback ===========================
+1. Is the project organized modularly, with Make as the workflow manager?
+Yes, though without running it, I'm not sure whether it's complete or not because it's not 100% clear what datasets are used. 
+
+2. Does the project use both Python (Pandas specifically) and R (Tidyverse specifically) scripts?
+Yes.
+
+3. Is Docker used to define execution environments appropriately?
+Yes.
+
+4. Are the plots appropriate for the data types, the hypotheses being tested, and the points being communicated?
+Yes, judging from the questions being asked, the plots are reasonable.
+
+5. How can the project be organized or documented more clearly?
+Structurally it's pretty clear. The R and python scripts are good enough as draft right now, but would be helpful to have more comments in the final product.
+
+6. Is the purpose of the project communicated clearly?
+Yes, the README file does a good job. 
+
+7. Does the purpose of the project make sense from the client’s point of view? How could the project better serve the client?
+Yes, looks good to me.
+
+8. Is the source of the data made clear? (Remember that this project can be part of your public portfolios, so people not familiar with UMD may see it).
+Yes, and each dataset comes with a brief description, very considerate.
+
+9. Is the interpretation of figures clearly explained?
+Not enough information to evaluate yet.
+
+10. Is the purpose and interpretation of analysis steps clearly communicated?
+Not enough information to evaluate yet.
+
+11. Are overall take-home messages clearly communicated?
+Not enough information to evaluate yet, but judging from what is in the draft now, I believe they will be communicated clearly.
