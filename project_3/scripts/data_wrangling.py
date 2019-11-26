@@ -203,3 +203,10 @@ disability_ind2['disability_total'] = pd.cut(disability_ind2.iloc[:,1], [-1,0,15
 ### If intersted in the first or last entry rather than all, the following code yields the disability status at each date of entry
 ### disability_entry['entry_date'] = pd.to_datetime(disability_entry['Disability Start Date (Entry)'])
 ### disability_entry.groupby(['Client Unique ID','entry_date']).agg('sum')
+
+disability_ind2['Client Unique ID'] = disability_ind2.index
+disability_ind2 = disability_ind2.iloc[:,1:4]
+disability_ind2.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/disability_entry_summary.csv',index=False)
+
+
+
