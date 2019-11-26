@@ -1,0 +1,39 @@
+Sorry, there is not enough information to really give any feedback beyond what is below, but good luck on your project and final presentation!
+
+===================    Non-template feedback   =====================
+1. I remember Matt saying that .gitignore and .gitkeep should be included in the project 3 repository.
+2. The standard project structure has a folder for scripts, though I'm not sure whether it's necessary when the number of scripts is small.
+
+====================   Template feedback  ======================
+1. Is the project organized modularly, with Make as the workflow manager?
+Yes, the Makefile is there. It is at a preliminary stage though.
+
+2. Does the project use both Python (Pandas specifically) and R (Tidyverse specifically) scripts?
+Not yet.
+
+3. Is Docker used to define execution environments appropriately?
+Not yet.
+
+4. Are the plots appropriate for the data types, the hypotheses being tested, and the points being communicated?
+No plots yet.
+
+5. How can the project be organized or documented more clearly?
+Not enough information to evaluate.
+
+6. Is the purpose of the project communicated clearly?
+Not enough information to evaluate.
+
+7. Does the purpose of the project make sense from the client’s point of view? How could the project better serve the client?
+Not enough information to evaluate.
+
+8. Is the source of the data made clear? (Remember that this project can be part of your public portfolios, so people not familiar with UMD may see it).
+The README file, which is from project 2, does contain some information on the data source, although it needs to be modified for project 3.
+
+9. Is the interpretation of figures clearly explained?
+No figures yet.
+
+10. Is the purpose and interpretation of analysis steps clearly communicated?
+No analysis yet.
+
+11. Are overall take-home messages clearly communicated?
+Not enough information to evaluate.
