@@ -1,0 +1,62 @@
+Overall great work. You must have put a lot of time into this project. Sorry the feedback got a bit long, but the most important feedback is the one on Q3, so if you need to skim, don't miss that one. Good luck on the project and final presentation!
+
+
+===================Non-Template Feedback======================
+1. README: 
+Clear and concise. I would probably list the tables that are actually used in the analysis (if not all are used). Very considerate to include the guide to run your code.
+
+2. Repository structure:
+/data/   Maybe only include the datasets that are used in the analysis?
+
+3. Report:
+
+Q1
+(1) If I remember it right, UMD provided some explanation on the google spreadsheet about the EE (?) provider variable, which might be helpful for your question one.
+(2) The numbers in the table do not appear to match with the counts in the figure.
+(4) It's probably a bit easier to read if the Number column is in descending order.
+
+Q3
+From the description in this section, it's not completely clear which variable is the outcome and which are explanatory variables (covariates). If the target audience is UMD staff, then it's probably helpful for them if the report has the full name and brief a description of what OLS does. 
+
+Note that observations of the outcome variable (Time Spent (days)) are not independent since some subjects have multiple stays, which leads to violation of the independence assumption of linear regression models. Some other methods to consider that account for correlated data include GEE and mixed models. The use of residual plots is a good idea for model diagnostics too. 
+
+b. The choice of color for heatmap is not very intuitive in the sense that correlation close to 1 or -1 stand out, but I guess this might be a limitation of the package/method. 
+
+d.iii What does the number of insurance (x-axis) mean? 
+
+4. For this part, the coefficients of covariates seems a bit arbitrary rather than data-driven. I might try normalizing each difference but honestly I don't know if that's better.
+
+
+=====================Template Feedback========================
+1. Is the project organized modularly, with Make as the workflow manager?
+Yes the Makefile is there.
+
+2. Does the project use both Python (Pandas specifically) and R (Tidyverse specifically) scripts?
+Yes.
+
+3. Is Docker used to define execution environments appropriately?
+Yes.
+
+4. Are the plots appropriate for the data types, the hypotheses being tested, and the points being communicated?
+Yes.
+
+5. How can the project be organized or documented more clearly?
+As listed in the non-template feedback section.
+
+6. Is the purpose of the project communicated clearly?
+Yes.
+
+7. Does the purpose of the project make sense from the client’s point of view? How could the project better serve the client?
+Yes.
+
+8. Is the source of the data made clear? (Remember that this project can be part of your public portfolios, so people not familiar with UMD may see it).
+Yes.
+
+9. Is the interpretation of figures clearly explained?
+Yes, would be helpful if some variables are also explained/described.
+
+10. Is the purpose and interpretation of analysis steps clearly communicated?
+Yes.
+
+11. Are overall take-home messages clearly communicated?
+Yes.
