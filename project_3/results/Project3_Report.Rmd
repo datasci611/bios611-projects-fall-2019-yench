@@ -1,0 +1,318 @@
+---
+title: "BIOS611 Project 3"
+author: "Yen Chang"
+date: "November 30, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Urban Ministries of Durham (UMD) is a non-profit organization providing shelter, food, clothing, hygiene kits, and other services to people who are homeless or in emergent needs in Durham. This projects focuses on the shelter aspect of UMD, and aims to compare the composition of shelter clients with that of local population. Specifically, who use UMD's shelter? Are their composition different from that of the general Durham population, in terms of sex, age, race, ethnicity, veteran and disability status? 
+
+\  
+
+## Data source
+#### UMD  
+UMD provides a total of 16 datasets containing information of clients upon their entry to and exit from UMD's shelter. 2 of the datasets used in this project are listed below.  
+
+1. **Client dataset:** this dataset containts information on age, gender, race, ethnicity, and veteran status of shleter clients. [CLIENT_191102.tsv.txt](https://github.com/datasci611/bios611-projects-fall-2019-yench/blob/master/project_3/data/raw/CLIENT_191102.tsv.txt)    
+2. **Disability dataset:** this dataset contains information on the disability status, start and end date of disability, and type of disability of a subset of shelter clients. One client can have multiple records. [DISABILITY_ENTRY_191102.tsv.txt](https://github.com/datasci611/bios611-projects-fall-2019-yench/blob/master/project_3/data/raw/DISABILITY_ENTRY_191102.tsv.txt)  
+
+#### United Census Bureau  
+The demographic data of Durham county is obtained from the American Community Survey (ACS) tables DP05 (sex, race, ethnicity), ACS_17_5YR_B21001 (veteran), and S1810 (disability) produced by US Census Bureau.  
+
+1. **ACS Table DP05 2017:** contains estimates of Durham population regarding sex, race, and ethnicity. [ACS 5-Year Estimates Data Profiles](https://data.census.gov/cedsci/table?hidePreview=true&g=0600000US3706390932&q=Durham%20township,%20Durham%20County,%20North%20Carolina&table=DP05&tid=ACSDP5Y2017.DP05&lastDisplayedRow=93&y=)  
+2. **ACS Table B21001:** contains estimates of Durham population regarding veteran status. [ACS B21001 SEX BY AGE BY VETERAN STATUS FOR THE CIVILIAN POPULATION 18 YEARS AND OVER](https://factfinder.census.gov/faces/tableservices/jsf/pages/productview.xhtml?src=CF)  
+3. **ACS Table S1810:** contains estimates of Durham population regarding disability status. [ACS S1810 DISABILITY CHARACTERISTICS](https://factfinder.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ACS_17_5YR_S1810&prodType=table)  
+
+\  
+
+## Analysis  
+### Preparation: Load the packages and datasets needed, and construct a function for plotting.  
+UMD and ACS datasets are pre-processed using python and imported directly. 
+```{r 1, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(MASS)
+library(knitr)
+
+data_path = '../data/analysis/'
+
+# Read in data
+client = read_csv(paste(data_path, 'client.csv', sep = ''))
+summary_sex = read_csv(paste(data_path, 'summary_sex.csv', sep = ''))
+summary_age = read_csv(paste(data_path, 'summary_age.csv', sep = ''))
+summary_race = read_csv(paste(data_path, 'summary_race.csv', sep = ''))
+summary_ethnicity = read_csv(paste(data_path, 'summary_ethnicity.csv', sep = ''))
+summary_veteran = read_csv(paste(data_path, 'summary_veteran.csv', sep = ''))
+
+durham_disability = read_csv(paste(data_path,'durham_disability.csv', sep = ''))
+disability_entry_subject = read_csv(paste(data_path, 'disability_entry_subject.csv', sep = ''))
+disability_entry_summary = read_csv(paste(data_path, 'disability_entry_summary.csv', sep = ''))
+
+
+## Construct a function for plotting pie charts
+pie = function(data, title_var, font_size = 3){
+  ggplot(data = data, aes(x = "", y = percent, fill = level))+
+    
+    geom_bar(stat = "identity", width = 1)+
+    
+    facet_wrap(~ source)+
+    
+    coord_polar("y", start = 0, direction = -1)+           
+    
+    labs(title =paste0("Distribution of ",title_var), 
+         fill = '',
+         caption = paste0('Source: UMD and ACS Survey 2017: ACS 5-Year Estimates Data Profiles')) +
+    
+    geom_text(aes(label = paste(round(percent, 2), '%')),
+                  position = position_stack(vjust = 0.5),
+                  size = font_size)+
+    
+    theme(   plot.title = element_text(size = 15, hjust = 0.5),
+             plot.caption = element_text(size = 6, hjust= 0.5),
+             axis.title.x = element_blank(),
+             axis.title.y = element_blank(),
+             axis.ticks = element_blank(),
+             panel.border = element_blank(),
+             panel.grid = element_blank())
+}
+```
+
+
+
+Note that the original client dataset does not have a date of when each client started using UMD shelter. The disability dataset has a date showing when that record was added, with values ranging from 2003 to 2019.  
+
+Here I focus on comparing two populations, the UMD shelter clients and the more general population in Durham county, NC. To simplify the analysis, I make the following assumptions:
+
+1. The number of clients may increase or decrease from year to year, but its composition is stable.
+2. Same for the composition of Durham population.
+3. Based on assumption 1 and 2, I compare the composition of UMD clients across all years, to the 5 year population estimates (2013-2017) of Durham from the ACS datasets.
+4. The American Community Survey is a survey rather than a census, so the counts and percents from this survey are estimates of rather than actual population parameters. However, here I treat the population percents as parameters (known) since the original sample of ACS is not accessible.
+
+ 
+### Question 1
+#### Is the composition of UMD shelter clients different from that of Durham in terms of gender/sex?
+From the pie charts below, we can see that females and males take up about even chunks of the Durham population, as expected, while more than three quarters of the UMD shelter clients are males. Note that the ACS survey asks for sex and the UMD shleter asks for gender, so there is one extra level `MTF` in the UMD client dataset.    
+
+```{r Q1a}
+## Sex
+pie(summary_sex, 'Sex')
+
+table_sex = summary_sex %>%
+  filter(level %in% c('Female','Male')) %>%  # Exclude MTF so no 0 counts in the contingency table
+  pivot_wider(names_from = level, values_from = c(count,percent))
+
+kable(cbind(table_sex[0:2,1:3], round(table_sex[0:2,4:5],2)))
+```
+
+To formally compare the two populations, I use the Chi-Square Goodness of Fit Test (hereinafter Chi-Square test). This test measures how likely we are to see the observed composition of sex in the UMD shelter client population, if the UMD clients have the same composition of sex as the general Durham population. The p-value of this test is extremely small, suggesting that the UMD client population is significantly different from the Durham population in terms of sex. In particular, there are much more males among UMD clients. Maybe females have better networks to help them through difficulties so they don't use shelters as much, or maybe males survive longer in homeless conditions. It would be interesting to investigate further whether females and males differ in their length or frequency of stay, since I only look at the total numbers of female and male clients here. 
+
+```{r Q1b}
+chisq.test(as.numeric(table_sex[1,2:3]), p = as.numeric(table_sex[2,4:5]/100))   # GOF test of count from UMD to proportions from ACS
+
+```
+
+### Question 2
+#### Is the composition of UMD shelter clients different from that of Durham in terms of age?
+From the histograms below, it's clear that UMD shelter clients have a similar center, but a much narrower spread of age compared to the Durham population. One possible explanation I can think of is that being financially chanllenged and (thus) homeless is harmful for health, and it impacts the elderly and the youngest the most. Alternatively, there might a minimum or maximum age required to stay in UMD's shelter, or other facilities to take care of the oldest and youngest populations. If so, it would explain why the minimum age in the client dataset is 18.  
+
+```{r Q2a}
+summary_age$order = rep(1:13,2)
+summary_age %>%  
+  ggplot(aes(x = factor(order), y = percent))+
+  
+  geom_bar(stat = "identity", width = 1)+
+  
+  facet_wrap(~ source)+
+  
+  labs(title ="Distribution of Age",
+       x = 'Age',
+       y = 'Percent (%)',
+       caption = paste0('Source: UMD and ACS Survey 2017: ACS 5-Year Estimates Data Profiles')) +
+  
+  scale_x_discrete(breaks=1:13,
+                   labels=summary_age$level[1:13])+
+  
+  theme(   plot.title = element_text(size = 15, hjust = 0.5),
+           plot.caption = element_text(size = 6, hjust= 0.5),
+           axis.text.x = element_text(angle = 90))
+```
+  
+The Chi-square test shows that the UMD client population is indeed significantly different from the Durham population in terms of age.
+
+```{r Q2b}
+table_age = summary_age %>%
+  dplyr::select(-order) %>%
+  pivot_wider(names_from = level, values_from = c(count,percent))
+
+kable(table_age[1:14])
+
+kable(cbind(table_age[1], round(table_age[15:27],2)))
+
+chisq.test(as.numeric(table_age[1,2:14]), p = as.numeric(table_age[2,2:14]/sum(table_age[2,2:14]))) 
+```
+
+### Question 3
+#### Is the composition of UMD shelter clients different from that of Durham in terms of race?
+In Durham, white accounts for about half, and black accounts for about 37% of the population. In UMD's shelter, white accounts for about a quarter, and the rest is mostly black. It's reasonable to suspect that the black population is disproportionately faced with financial challenges and homelessness. Note that the two datasets do not have the exact same set of categoraization of races. The levels `Client refused`, `Data not collected` are only found in the UMD client dataset, and the definitions of `Other` are slightly different (more detail in the python script).
+
+```{r Q3a}
+## Race
+pie(summary_race, 'Race',2)
+table_race = summary_race %>%
+  pivot_wider(names_from = level, values_from = c(count,percent))
+
+kable(table_race[1:9])
+kable(cbind(table_race[1],round(table_race[10:17],3)))
+```
+
+I exclude `Client refused` and `Data not collected` from the Chi-Square test, since they are not in the Durham population dataset and that they only take up a very small portion of the UMD shelter population. The table above shows that the percent of Native Hawaiian and Other Pacific Islander is 0, but this is an artifact due to rounding. Also due to the small percentage of Native Hawaiian and Other Pacific Islander in Durham, R gives the warning that the chi-square approximation may be incorrect (affects the validity of the test). Given that other expected counts are well above 10, the approximation should work fine.
+
+The result of the test suggests that the UMD client population differs from the general Durham population in terms of race. 
+
+```{r Q3b}
+table_race2 = table_race %>%
+  dplyr::select(-`count_Client refused`,-`count_Data not collected`,-`percent_Client refused`,-`percent_Data not collected`)
+
+chisq.test(as.numeric(table_race2[1,2:7]), p = as.numeric(table_race2[2,2:7]/sum(table_race2[2,2:7]))) 
+
+as.numeric(table_race2[2,2:7]/sum(table_race2[2,2:7]))*sum(table_race2[1,2:7])   # Expected cell counts
+```
+
+### Question 4
+#### Is the composition of UMD shelter clients different from that of Durham in terms of ethnicity?
+The Hispanic or Latino population takes up a smaller chunk in the UMD shelter than in the general Durham population. Again the UMD dataset has three extra levels not in the ACS dataset, namely `Client doesn't know`, `Client refused`, and `Data not collected`.
+```{r Q4a}
+## Ethnicity
+pie(summary_ethnicity, 'Ethnicity',2)
+
+table_ethnicity = summary_ethnicity %>%
+  pivot_wider(names_from = level, values_from = c(count,percent))
+
+kable(table_ethnicity[1:6])
+kable(cbind(table_ethnicity[1], round(table_ethnicity[7:11],2)))
+```
+
+After excluding the three extra levels in the UMD client dataset, the Chi-Square test gives a very small p-value, meaning that the Hispanic or Latino population takes up a significantly smaller portion in the UMD shelter population than in the general population. Maybe the stronger family bonds in hispanic/latino population makes them less likely to become homeless.
+
+```{r Q4b}
+table_ethnicity = table_ethnicity %>%
+  dplyr::select(-`count_Client refused`, -`count_Data not collected`,-`count_Client doesn't know`,
+                -`percent_Client refused`, -`percent_Data not collected`,-`percent_Client doesn't know`)
+
+chisq.test(as.numeric(table_ethnicity[1,2:3]), p = as.numeric(table_ethnicity[2,2:3]/sum(table_ethnicity[2,2:3]))) 
+```
+
+### Question 5
+#### Is the composition of UMD shelter clients different from that of Durham in terms of veteran status?
+From the pie chars, we can see that the percentage of veterans in the UMD shelter is higher by about 4% compared to the percentage of veterans in the Durham population 18 years old or over. Note that the UMD client data set has the `Data not collected` level for veteran status, which is not found in the veteran dataset from ACS.  
+```{r Q5a}
+## Ethnicity
+pie(summary_veteran, 'Veteran')
+
+table_veteran = summary_ethnicity %>%
+  pivot_wider(names_from = level, values_from = c(count,percent))
+
+kable(table_veteran[1:6])
+kable(cbind(table_veteran[1],round(table_veteran[7:11],2)))
+```
+
+The result of the Chi-Square Test suggests that UMD shleter has a higher percentage of veterans than the general Durham population 18 years old or over, which reflects that veterans might be more financially challenged than non-veteran civilians.
+
+```{r Q5b}
+table_veteran = table_veteran %>%
+  dplyr::select(-`count_Client refused`, -`count_Data not collected`, -`count_Client doesn't know`,
+                -`percent_Client refused`, -`percent_Data not collected`, -`percent_Client doesn't know`)
+chisq.test(as.numeric(table_veteran[1,2:3]), p = as.numeric(table_veteran[2,2:3]/sum(table_veteran[2,2:3]))) 
+```
+
+### Question 6:
+#### Is the composition of UMD shelter clients different from that of Durham in terms of veteran status?
+Because the UMD client dataset does not contain information on disability status, I use the disability at entry dataset instead. A client in the disability at entry dataset is defined as `With a disability` if he/she has at least one record of disability, otherwise `Without a disability`. Compared to the Durham population estimate which likely comes from a cross-sectional sample (sampled at one point in time), the definition of our disability status is cumulative and would likely lead to an estimate of percentage of disability among the UMD shelter clients that is biased upward. 
+
+```{r Q6_prep, include = FALSE}
+## Due to constraint in time, the data processing of this part is done in R
+disability_entry_summary = disability_entry_summary %>% 
+  count(disability_total) %>%
+  rename(count = n) %>%
+  mutate(percent = count/sum(count)*100) %>%
+  pivot_wider(names_from = disability_total, values_from = c(count, percent)) %>%
+  mutate(source = 'UMD') %>%
+  dplyr::select(source, `count_With a disability`, `count_Without a disability`, `percent_With a disability`, `percent_Without a disability`)
+
+durham_disability = durham_disability %>%
+  dplyr::select(-index) %>%
+  rename(count = Estimate, percent = `Percent Estimate`) %>%
+  pivot_wider(names_from = level, values_from = c(count, percent)) %>%
+  mutate(source = 'Durham') %>%
+  dplyr::select(source, `count_With a disability`, `count_Without a disability`, `percent_With a disability`, `percent_Without a disability`)
+
+disability_table = rbind(disability_entry_summary, durham_disability)
+
+summary_disability = disability_table %>%
+  dplyr::select(source, starts_with('percent')) %>%
+  pivot_longer(values_to = 'percent', 
+               cols = c(`percent_With a disability`,`percent_Without a disability`), 
+               names_to = 'level') 
+
+summary_disability$level = sub('percent_', '', summary_disability$level)
+```
+
+From the pie charts and Chi-Square test, we see that the percentage of population having a disability is much higher among the UMD shelter clients than the general Durham population, which is reasonable, as disability affects one's ability to work, and homelessness might also affect one's health.
+
+```{r Q6a}
+pie(summary_disability,'Disability')
+kable(cbind(disability_table[1:3],round(disability_table[4:5],2)))
+```
+
+```{r Q6c}
+chisq.test(disability_table[1,2:3], p = as.numeric(disability_table[2,4:5]/100))
+```
+
+Alternatively, we can define a client as `With a disability` if there is at least one record of disability on the earliest date of his/her record. Despite a 4% drop, the percentage of population having a disability is still much higher among the UMD shelter clients than the general Durham population.
+```{r Q6d}
+disability_entry_subject = disability_entry_subject %>%
+  mutate(entry_date  = as.Date(`Disability Start Date (Entry)`, "%m/%d/%Y")) %>%
+  group_by(`Client Unique ID`,entry_date) %>%
+  mutate(disability_ind1 = (`Disability Determination (Entry)` == 'Yes')) %>%
+  summarize(disability_ind2 = sum(disability_ind1, na.rm = TRUE)) %>%
+  filter(row_number(entry_date) == 1) %>%
+  ungroup() %>%
+  mutate(disability_ind3 = (disability_ind2 > 0)) %>%
+  count(disability_ind3) %>%
+  rename(count = n)  %>%
+  mutate(percent = count/sum(count)*100) %>%
+  pivot_wider(names_from = disability_ind3, values_from = c(count, percent)) %>%
+  mutate(source = 'UMD') %>%
+  dplyr::select(source, `count_With a disability` = count_TRUE, `count_Without a disability` = count_FALSE,
+                `percent_With a disability` = percent_TRUE, `percent_Without a disability` = percent_FALSE)
+
+disability_table2 = rbind(disability_entry_subject, durham_disability)
+```
+
+
+```{r Q6e}
+summary_disability2 = disability_table2 %>%
+  dplyr::select(source, starts_with('percent')) %>%
+  pivot_longer(values_to = 'percent',
+               cols = c(`percent_With a disability`,`percent_Without a disability`),
+               names_to = 'level')
+summary_disability2$level = sub('percent_', '', summary_disability2$level)
+```
+
+
+```{r Q6f}
+pie(summary_disability2,'Disability 2')
+kable(cbind(disability_table[1:3],round(disability_table2[4:5],2)))
+```
+
+```{r Q6g}
+chisq.test(disability_table2[1,2:3], p = as.numeric(disability_table2[2,4:5]/100))
+```
+
+## Conclusion:
+The UMD shelter population is significantly different from the general durham population in sex/gender, age, race, ethnicity veteran status, and disability status. The groups that are over-represented in the UMD shelter are likely more vulnerable financially than other groups. 
+

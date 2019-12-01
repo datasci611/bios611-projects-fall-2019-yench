@@ -1,0 +1,6 @@
+level,count,percent,source
+Data not collected,7,0.13235016071090944,UMD
+Nonveteran,4724,89.31745131404803,UMD
+Veteran,558,10.550198525241067,UMD
+Veteran,15392,6.538824269097768,Duhram
+Nonveteran,220002,93.46117573090223,Duhram

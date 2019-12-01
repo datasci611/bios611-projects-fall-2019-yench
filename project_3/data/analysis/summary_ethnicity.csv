@@ -1,0 +1,8 @@
+level,count,percent,source
+Client doesn't know,10,0.18882175226586104,UMD
+Client refused,8,0.1510574018126888,UMD
+Data not collected,13,0.24546827794561932,UMD
+Hispanic or Latino (of any race),192,3.625377643504532,UMD
+Not Hispanic or Latino,5073,95.7892749244713,UMD
+Hispanic or Latino (of any race),40484,13.5,Duhram
+Not Hispanic or Latino,260381,86.5,Duhram

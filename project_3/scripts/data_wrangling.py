@@ -1,17 +1,18 @@
 ## This python script imports raw datasets, wrangles, and writes analysis datasets for further analysis in R.
 
 ## Input: ACSDP5Y2017.DP05_data_with_overlays_2019-11-17T201128.csv
-##		  ACSDP5Y2017.DP02_data_with_overlays_2019-11-18T123256.csv
+##		  ACS_17_5YR_B21001_with_ann.csv
+##        ACS_17_5YR_S1810_with_ann.csv
 ##        CLIENT_191102.tsv.txt
 ##        DISABILITY_ENTRY_191102.tsv.txt  
 
-## Output: durham_sex.csv
-##		   durham_age.csv
-##		   durham_race.csv
-##		   durham_ethnicity.csv
-##		   durham_veteran.csv
+## Output: client.csv
+##         summary_sex.csv
+##		   summary_age.csv
+##		   summary_race.csv
+##		   summary_ethnicity.csv
+##		   summary_veteran.csv
 ##		   durham_disability.csv
-##         client.csv
 ##         disability_entry_subject.csv
 ##         disability_entry_summary.csv
 
@@ -19,63 +20,56 @@
 import pandas as pd
 import numpy as np
 
-
-# 1. Local demographic data
 ## Read in raw demographic datasets from US Census Bureau
-durham_raw_sre = pd.read_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/raw/ACSDP5Y2017.DP05_data_with_overlays_2019-11-17T201128.csv')
+durham_raw_sar = pd.read_csv('data/raw/ACSDP5Y2017.DP05_data_with_overlays_2019-11-17T201128.csv')
 
-durham_raw_vd = pd.read_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/raw/ACSDP5Y2017.DP02_data_with_overlays_2019-11-18T123256.csv')
+durham_raw_v = pd.read_csv('data/raw/ACS_17_5YR_B21001_with_ann.csv')
 
-## Concatenate two tables horizontally (as columns)
-durham_raw = pd.concat([durham_raw_sre,durham_raw_vd], axis = 1 )  
+durham_raw_d = pd.read_csv('data/raw/ACS_17_5YR_S1810_with_ann.csv')
 
-
+# 1. Process the table containing sex, age and race (SAR) information
 ## Only keep population estimates and percent estimates (discard margins of error)
-durham = durham_raw.iloc[0:2,durham_raw.columns.str.contains('E')]
+mask1 = durham_raw_sar.iloc[0].str.contains('Estimate').values
 
+durham_sar = durham_raw_sar.iloc[0:2, mask1]
 
-## Reshaping data structure 
-durham_long = pd.DataFrame(durham.iloc[0]).rename(columns = {0 : 'name'})
+## Reshape SAR table 
+durham_sar_long = pd.DataFrame(durham_sar.iloc[0]).rename(columns = {0 : 'name'})    # Transpose the table from wide to long
 
-durham_expand = durham_long['name'].str.split('!!', 1, expand = True)
+durham_sar_expand = durham_sar_long['name'].str.split('!!', 1, expand = True)  
 
-durham_expand['value'] = durham.iloc[1]
+durham_sar_expand['value'] = durham_sar.iloc[1]
 
-durham_expand['var'] = durham.columns
+durham_sar_expand['var'] = durham_sar.columns
 
-durham_no_heading = durham_expand.drop(['GEO_ID','NAME'],axis = 0).rename(columns = {0 : 'stat', 1: 'label'})
+durham_sar_expand = durham_sar_expand.rename(columns = {0 : 'stat', 1: 'label'})
 
-durham_no_heading['index'] = durham_no_heading['var'].str[0:9]
-                  
-durham_est = durham_no_heading.pivot(index = 'index', columns = 'stat', values = 'value').rename_axis(None, axis=1).reset_index()
+durham_sar_expand['index'] = durham_sar_expand['var'].str[0:9]
 
-durham_label = durham_no_heading[['index','label']].drop_duplicates()
+durham_sar_est = durham_sar_expand.pivot(index = 'index', columns = 'stat', values = 'value').rename_axis(None, axis=1).reset_index()
 
-durham_level = durham_label['label'].str.split('!!', expand = True)
+durham_sar_label = durham_sar_expand[['index','label']].drop_duplicates()
 
-durham_level['index'] = durham_label['index']
+durham_sar_level = durham_sar_label['label'].str.split('!!', expand = True)
 
-durham_merge = durham_level.merge(durham_est, on = 'index', how = 'left')
+durham_sar_level['index'] = durham_sar_label['index']
 
+durham_sar_merge = durham_sar_level.merge(durham_sar_est, on = 'index', how = 'left')
 
-## Attach column names
-durham_merge.columns = ['lev1','lev2','lev3','lev4','lev5',durham_merge.columns[5],durham_merge.columns[6],'Percent Estimate']
+durham_sar_merge.columns = ['lev1','lev2','lev3','lev4','lev5',durham_sar_merge.columns[5],durham_sar_merge.columns[6],'Percent Estimate']
 
+durham_sar_merge.head()
 
-## Process and output sex and age data 
-durham_sex_age_ = durham_merge[durham_merge['lev1'] == 'SEX AND AGE']
+## Process sex and age data 
+durham_sex_age_ = durham_sar_merge[durham_sar_merge['lev1'] == 'SEX AND AGE']
 
-durham_age = durham_sex_age_.iloc[4:18,[2,5,6,7]]
+durham_age = durham_sex_age_.iloc[4:17,[2,5,6,7]]
 
 durham_sex = durham_sex_age_.iloc[1:3,[2,5,6,7]]
 
-durham_sex.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/durham_sex.csv',index=False)
 
-
-durham_age.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/durham_age.csv',index=False)
-
-## Process and output race data 
-durham_race_ = durham_merge[durham_merge['lev1'] == 'RACE']
+## Process race data 
+durham_race_ = durham_sar_merge[durham_sar_merge['lev1'] == 'RACE']
 
 durham_race_ = durham_race_.iloc[:,[3,5,6,7]]
 
@@ -87,43 +81,51 @@ race_other = pd.Series(['Other', ' ', sum(pd.to_numeric(durham_race_['Estimate']
 
 durham_race = durham_race_.append(race_other,ignore_index=True).drop([5,6])
 
-durham_race.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/durham_race.csv',index=False)
-
-
-## Process and output ethnicity data
-durham_ethnicity_ = durham_merge[durham_merge['lev1'] == 'HISPANIC OR LATINO AND RACE']
+## Process ethnicity data
+durham_ethnicity_ = durham_sar_merge[durham_sar_merge['lev1'] == 'HISPANIC OR LATINO AND RACE']
 
 durham_ethnicity_ = durham_ethnicity_[durham_ethnicity_['index'].str.contains('71|76')]
 
 durham_ethnicity = durham_ethnicity_.iloc[:,[2,5,6,7]]
 
-durham_ethnicity.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/durham_ethnicity.csv',index=False)
+# 2. Process and reshape the veteran table
+mask2 = durham_raw_v.iloc[0].str.contains('Estimate').values
 
+durham_v = durham_raw_v.iloc[0:2, mask2]
 
-## Process and output veteran data
-durham_veteran_ = durham_merge[durham_merge['lev1'] == 'VETERAN STATUS']
-durham_veteran_ = durham_veteran_.iloc[:,[2,5,6,7]]
-veteran_non = pd.Series(['Non veteran', ' ', 
-                         pd.to_numeric(durham_veteran_['Estimate'].iloc[0]) - 
-                         pd.to_numeric(durham_veteran_['Estimate'].iloc[1]),
-                         100 - pd.to_numeric(durham_veteran_['Percent Estimate'].iloc[1])],
-                        index = durham_veteran_.columns)
+durham_v_long = pd.DataFrame(durham_v.iloc[0]).rename(columns = {0 : 'name'})    # Transpose the table from wide to long
 
-durham_veteran = durham_veteran_.append(veteran_non,ignore_index=True).drop(0)
+durham_v_sub = durham_v_long.iloc[1:3]       # Only keep a subset of data relevant to this analysis
 
-durham_veteran.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/durham_veteran.csv',index=False)
+durham_veteran = durham_v_sub['name'].str.split('- ', 1, expand = True)
 
- 
-## Process and output disability data
-# durham_disability_ = durham_merge[durham_merge['lev1'].str.contains('DISABILITY')]
-# durham_disability_
-# durham_disability.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/durham_disability.csv',index=False)
- 
+durham_veteran = durham_veteran.rename(columns = {1 : 'level'})
 
- 
-# 2. Client data
+durham_veteran['index'] = durham_v.columns[1:3]
+
+durham_veteran['Estimate'] = durham_v.iloc[1,1:3]
+
+durham_veteran = durham_veteran.iloc[:,1:4]
+
+durham_veteran['Percent Estimate'] = pd.to_numeric(durham_veteran['Estimate'])*100 / float(durham_v.iloc[1,0])
+
+# 3. Process, reshape, and output disability data
+mask3 = durham_raw_d.iloc[0].str.contains('Estimate').values
+
+durham_d = durham_raw_d.iloc[0:2, mask3]  
+
+durham_disability = pd.DataFrame({'level': ['With a disability', 'Without a disability'],
+                                  'index' : [durham_d.columns[0],''],
+                                  'Estimate' : [float(durham_d.iloc[1,1]), float(durham_d.iloc[1,0]) - float(durham_d.iloc[1,1])], 
+                                  'Percent Estimate' : [float(durham_d.iloc[1,2]), 100 - float(durham_d.iloc[1,2])]})
+
+durham_disability = durham_disability[['level', 'index', 'Estimate', 'Percent Estimate']]
+
+durham_disability = durham_disability.to_csv('data/analysis/durham_disability.csv',index=False)
+
+# 4. Client data
 ## Read in raw client data from UMD
-client_raw = pd.read_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/raw/CLIENT_191102.tsv.txt', sep='\t')
+client_raw = pd.read_csv('data/raw/CLIENT_191102.tsv.txt', sep='\t')
 
 ## Select only variables that will be used in the analysis
 client = client_raw.iloc[:,2:10]
@@ -168,7 +170,7 @@ client['ethnicity_cat'].replace(ethnicity_dic, inplace = True)
 ## Categorize veteran status according to the levels of of local demographic data 
 ## (only look at subjects 18 years old and over at entry)
 
-veteran_dic = {'Yes': 'Civilian veteran', 'No': 'Non veteran'}
+veteran_dic = {'Yes': 'Veteran', 'No': 'Nonveteran'}
 
 for i, row in client.iterrows():
     if client['Client Age at Entry'].iloc[i] >= 18:
@@ -176,11 +178,56 @@ for i, row in client.iterrows():
         client['veteran_cat'].replace(veteran_dic, inplace = True)
 
 ## Output the client dataset
-client.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/client.csv',index=False)
+client.to_csv('data/analysis/client.csv',index=False)
 
-# 3. Disability data
+# 5. Merge summary data from UMD and ACS. Output to CSV file for further analysis in R.
+
+## Construct a function to merge summary data (counts and percents) from UMD and from ACS 
+def merge_summary(durham_in,            # input dataset (eg. durham_sex)
+                  level_in_durham,      # level variable in the input dataset (eg. 'lev3')
+                  var_in_client,        # corresponding variable name in the client dataset (eg. 'Client Gender')
+                  out):                  # output dataset (eg. 'sex' - > sex_summary.csv)
+
+    ### Create client summary data on the variable specified
+    client_summary = pd.DataFrame(client.groupby(var_in_client, as_index = False).size().reset_index(name='count'))
+
+    client_summary.rename(columns = {var_in_client: 'level'}, inplace = True)
+
+    client_summary['percent'] = client_summary['count']/client_summary['count'].sum()*100
+
+    client_summary['source'] = 'UMD'
+
+    ### Reshape Durham summary data on the variable specified
+    acs = durham_in[[level_in_durham, 'Estimate', 'Percent Estimate']]
+
+    acs.columns = ['level','count','percent']
+
+    acs['source'] = 'Duhram'
+
+    ### Merge the client summary dataset and Durham summary dataset vertically
+    summary = pd.concat([client_summary, acs], ignore_index=True)
+
+    ### Output csv file
+    summary.to_csv('data/analysis/summary_'+ out + '.csv',index=False)
+	
+## Output sex summary data
+merge_summary(durham_in = durham_sex, level_in_durham = 'lev3', var_in_client = 'Client Gender', out = 'sex')
+
+## Output age summary data
+merge_summary(durham_in = durham_age, level_in_durham = 'lev3', var_in_client = 'age_cat', out = 'age')
+
+## Output race summary data
+merge_summary(durham_in = durham_race, level_in_durham = 'lev4', var_in_client = 'race_cat', out = 'race')
+
+## Output ethnicity summary data
+merge_summary(durham_in = durham_ethnicity, level_in_durham = 'lev3', var_in_client = 'ethnicity_cat', out = 'ethnicity')
+
+## Output veteran summary data
+merge_summary(durham_in = durham_veteran, level_in_durham = 'level', var_in_client = 'veteran_cat', out = 'veteran')
+
+# 6. Disability data
 ## Read in raw disability at entry dataset
-disability_entry_raw = pd.read_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/raw/DISABILITY_ENTRY_191102.tsv.txt', sep='\t')
+disability_entry_raw = pd.read_csv('data/raw/DISABILITY_ENTRY_191102.tsv.txt', sep='\t')
 
 ## Keep only variables relevant to analysis
 disability_entry = disability_entry_raw.iloc[:,2:8]
@@ -190,7 +237,7 @@ for i in [2,3]:
     disability_entry.iloc[:,i] = disability_entry.iloc[:,i].str.rstrip(' (HUD)')
     
 ## Output subject-level disability entry dataset
-disability_entry.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/disability_entry_subject.csv',index=False)
+disability_entry.to_csv('data/analysis/disability_entry_subject.csv',index=False)
 
 ## Create an indicator for disability        
 for i in range(0, len(disability_entry)):
@@ -206,7 +253,7 @@ disability_ind2['disability_total'] = pd.cut(disability_ind2.iloc[:,1], [-1,0,15
 
 disability_ind2['Client Unique ID'] = disability_ind2.index
 disability_ind2 = disability_ind2.iloc[:,1:4]
-disability_ind2.to_csv('Documents/GitHub/bios611-projects-fall-2019-yench/project_3/data/analysis/disability_entry_summary.csv',index=False)
+disability_ind2.to_csv('data/analysis/disability_entry_summary.csv',index=False)
 
 
 
