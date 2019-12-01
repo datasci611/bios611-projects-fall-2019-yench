@@ -1,7 +1,7 @@
 # BIOS611 Project 3 
 
 ## Background and objective
-Urban Ministries of Durham (UMD) is a non-profit organization providing shelter, food, clothing, hygiene kits, and other services to people who are homeless or in emergent needs in Durham. This projects focuses on the shelter aspect of UMD, and aims to compare the composition of shelter clients with that of local population. Specifically, who use UMD's shelter? Are their composition different from that of local population, in terms of sex, age, race, ethnicity, and veteran status? 
+Urban Ministries of Durham (UMD) is a non-profit organization providing shelter, food, clothing, hygiene kits, and other services to people who are homeless or in emergent needs in Durham. This projects focuses on the shelter aspect of UMD, and aims to compare the composition of shelter clients with that of local population. Specifically, who use UMD's shelter? Are their composition different from that of local population, in terms of sex, age, race, ethnicity, and veteran status? Knowing who the clients are may help UMD to allocate resources more accurately, or allow UMD to appeal to certain groups for funding particular vulnerable populations.
 
 ## Audience
 UMD and stakeholders are the target audience of this project. 
@@ -14,7 +14,7 @@ UMD provided a total of 16 datasets containing information of clients upon their
 [DISABILITY_ENTRY_191102.tsv.txt](https://github.com/datasci611/bios611-projects-fall-2019-yench/blob/master/project_3/data/raw/DISABILITY_ENTRY_191102.tsv.txt)
 
 2. United Census Bureau American Community Survey
-The demographic data of Durham county is obtained from the American Community Survey tables DP05 (sex, race, ethnicity), ACS_17_5YR_B21001 (veteran), and S1810 (disability) produced by US Census Bureau.  
+The demographic data of Durham county is obtained from the American Community Survey tables DP05 (sex, age, race, ethnicity), ACS_17_5YR_B21001 (veteran), and S1810 (disability) produced by US Census Bureau.  
 [American Community Survey Table DP05 2017: ACS 5-Year Estimates Data Profiles](https://data.census.gov/cedsci/table?hidePreview=true&g=0600000US3706390932&q=Durham%20township,%20Durham%20County,%20North%20Carolina&table=DP05&tid=ACSDP5Y2017.DP05&lastDisplayedRow=93&y=)
 
 [American Community Survey B21001 SEX BY AGE BY VETERAN STATUS FOR THE CIVILIAN POPULATION 18 YEARS AND OVER]
