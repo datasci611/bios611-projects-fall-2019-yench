@@ -117,7 +117,7 @@ chisq.test(as.numeric(table_sex[1,2:3]), p = as.numeric(table_sex[2,4:5]/100))  
 
 ### Question 2
 #### Is the composition of UMD shelter clients different from that of Durham in terms of age?
-From the histograms below, it's clear that UMD shelter clients have a similar center, but a much narrower spread of age compared to the Durham population. One possible explanation I can think of is that being financially chanllenged and (thus) homeless is harmful for health, and it impacts the elderly and the youngest the most. Alternatively, there might a minimum or maximum age required to stay in UMD's shelter, or other facilities to take care of the oldest and youngest populations. If so, it would explain why the minimum age in the client dataset is 18.  
+From the histograms below, it's clear that UMD shelter clients have a similar center, but a much narrower spread of age compared to the Durham population. One possible explanation I can think of is that being financially challenged and (thus) homeless is harmful for health, and it impacts the elderly and the youngest the most. Alternatively, there might a minimum or maximum age required to stay in UMD's shelter, or other facilities to take care of the oldest and youngest populations. If so, it would explain why the minimum age in the client dataset is 18.  
 
 ```{r Q2a}
 summary_age$order = rep(1:13,2)
@@ -220,7 +220,7 @@ kable(table_veteran[1:6])
 kable(cbind(table_veteran[1],round(table_veteran[7:11],2)))
 ```
 
-The result of the Chi-Square Test suggests that UMD shleter has a higher percentage of veterans than the general Durham population 18 years old or over, which reflects that veterans might be more financially challenged than non-veteran civilians.
+The result of the Chi-Square test suggests that UMD shelter has a higher percentage of veterans than the general Durham population 18 years old or over, which reflects that veterans might be more financially challenged than non-veteran civilians, or maybe this result is confounded by sex.
 
 ```{r Q5b}
 table_veteran = table_veteran %>%
