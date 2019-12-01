@@ -17,7 +17,7 @@ Urban Ministries of Durham (UMD) is a non-profit organization providing shelter,
 #### UMD  
 UMD provides a total of 16 datasets containing information of clients upon their entry to and exit from UMD's shelter. 2 of the datasets used in this project are listed below.  
 
-1. **Client dataset:** this dataset containts information on age, gender, race, ethnicity, and veteran status of shleter clients. [CLIENT_191102.tsv.txt](https://github.com/datasci611/bios611-projects-fall-2019-yench/blob/master/project_3/data/raw/CLIENT_191102.tsv.txt)    
+1. **Client dataset:** this dataset contains information on age, gender, race, ethnicity, and veteran status of shleter clients. [CLIENT_191102.tsv.txt](https://github.com/datasci611/bios611-projects-fall-2019-yench/blob/master/project_3/data/raw/CLIENT_191102.tsv.txt)    
 2. **Disability dataset:** this dataset contains information on the disability status, start and end date of disability, and type of disability of a subset of shelter clients. One client can have multiple records. [DISABILITY_ENTRY_191102.tsv.txt](https://github.com/datasci611/bios611-projects-fall-2019-yench/blob/master/project_3/data/raw/DISABILITY_ENTRY_191102.tsv.txt)  
 
 #### United Census Bureau  
