@@ -1,8 +1,8 @@
 ** Project 3 Grade
 
    Average Feedback Score - 15/15
-   Grader Score - 96.5/100
-   Average Presentation Score - 27/30: 3 did not include description on making final target
+   Average Presentation Score - 96.5/100
+   Grader Score - 27/30: 3 did not include description on making final target
    
    Final Grade - 94.75
 
